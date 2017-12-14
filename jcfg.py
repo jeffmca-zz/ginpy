@@ -1,3 +1,5 @@
+#! /home/jmcadams/python-netsvcmgmt/bin/python3
+
 import os
 import sys
 from lxml import etree
@@ -176,6 +178,43 @@ class InterfaceUnitCFG:
             self.add_ipv4(addr.with_prefixlen)
         elif addr.version == 6:
             self.add_ipv6(addr.with_prefixlen)
+
+    def remove_ipv4(self, ipv4str):
+        v4addr = ipaddress.IPv4Interface(ipv4str)
+        if not self.has_ipv4():
+            raise ValueError("Unit isn't configured for family inet (IPv4)")
+        else:
+            if v4addr not in self.get_ipv4():
+                raise ValueError("Unit doesn't have inet (IPv4) address {} configured".format(v4addr.with_prefixlen))
+            else:
+                faminetcfg = self.xmlconfig.find("./family/inet")
+                for addrcfg in self.xmlconfig.findall("./family/inet/address"):
+                    if addrcfg.find("./name").text == v4addr.with_prefixlen:
+                        faminetcfg.remove(addrcfg)
+
+    def remove_ipv6(self, ipv6str):
+        v6addr = ipaddress.IPv6Interface(ipv6str)
+        if not self.has_ipv6():
+            raise ValueError("Unit isn't configured for family inet6 (IPv6)")
+        else:
+            if v6addr not in self.get_ipv6():
+                raise ValueError("Unit doesn't have inet6 (IPv6) address {} configured".format(v6addr.with_prefixlen))
+            else:
+                faminetcfg = self.xmlconfig.find("./family/inet6")
+                for addrcfg in self.xmlconfig.findall("./family/inet6/address"):
+                    if addrcfg.find("./name").text == v6addr.with_prefixlen:
+                        faminetcfg.remove(addrcfg)
+
+    def remove_ip(self,ipstr):
+        """
+        Removes either an IPv4 or IPv6 address to an interface unit.  Attempts to autodetect which address family to use based
+        on Python's ipaddress library.
+        """
+        addr = ipaddress.ip_interface(ipstr)
+        if addr.version == 4:
+            self.remove_ipv4(addr.with_prefixlen)
+        elif addr.version == 6:
+            self.remove_ipv6(addr.with_prefixlen)
 
     @classmethod
     def get_unit_nums(cls, intcfg):
