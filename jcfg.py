@@ -216,6 +216,44 @@ class InterfaceUnitCFG:
         elif addr.version == 6:
             self.remove_ipv6(addr.with_prefixlen)
 
+    def get_ipv4_mtu_setting(self):
+        if self.xmlconfig.find("./family/inet/mtu") == None:
+            return 0
+        else:
+            return int(self.xmlconfig.find("./family/inet/mtu").text)
+
+    def get_ipv6_mtu_setting(self):
+        if self.xmlconfig.find("./family/inet6/mtu") == None:
+            return 0
+        else:
+            return int(self.xmlconfig.find("./family/inet6/mtu").text)
+
+    def set_ipv4_mtu(self, mtu):
+        faminet = self.xmlconfig.find("./family/inet")
+        if mtu == 0:
+            if faminet.find("./mtu") == None:
+                pass
+            else:
+                faminet.remove(faminet.find("./mtu"))
+        else:
+            if faminet.find("./mtu") == None:
+                etree.SubElement(faminet, "mtu").text = str(mtu)
+            else:
+                faminet.find("./mtu").text = str(mtu)
+
+    def set_ipv6_mtu(self, mtu):
+        faminet6 = self.xmlconfig.find("./family/inet6")
+        if mtu == 0:
+            if faminet6.find("./mtu") == None:
+                pass
+            else:
+                faminet6.remove(faminet6.find("./mtu"))
+        else:
+            if faminet6.find("./mtu") == None:
+                etree.SubElement(faminet6, "mtu").text = str(mtu)
+            else:
+                faminet6.find("./mtu").text = str(mtu)
+
     @classmethod
     def get_unit_nums(cls, intcfg):
         """
@@ -251,6 +289,24 @@ class InterfaceCFG:
             return True
         else:
             return False
+
+    def get_mtu_setting(self):
+        if self.xmlconfig.find("./mtu") == None:
+            return 0
+        else:
+            return int(self.xmlconfig.find("./mtu").text)
+
+    def set_mtu(self, mtu):
+        if mtu == 0:
+            if self.xmlconfig.find("./mtu") == None:
+                pass
+            else:
+                self.xmlconfig.remove(faminet6.find("./mtu"))
+        else:
+            if self.xmlconfig.find("./mtu") == None:
+                etree.SubElement(self.xmlconfig, "mtu").text = str(mtu)
+            else:
+                faminet6.find("./mtu").text = str(mtu)
 
     def is_tagged(self):
         if self.has_vlan_tagging():
