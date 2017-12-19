@@ -1,5 +1,3 @@
-#! /home/jmcadams/python-netsvcmgmt/bin/python3
-
 import os
 import sys
 from lxml import etree
@@ -344,6 +342,67 @@ class VlanCFG:
     @classmethod
     def get_vlan_by_id(cls, junosdevcfg, vlan_id):
         pass
+
+
+class SystemCFG:
+    """
+    A class providing a programatic interface to common system parameters
+    defined in a Juniper config XML file.
+
+    The class essentially wraps etree Elements of a Juniper "system" and "snmp"
+    hierarchy.  Methods are provided to inspect what the current configuration
+    is, and to modify it.
+    """
+    def __init__(self, junosdevcfg):
+        """Create an VlanCFG Object.  Pass in a top-level JunosDevConfig Object, and a
+        name of a vlan.
+        """
+        self.name = "system"
+        self.parent = junosdevcfg
+        self.xmlconfig = junosdevcfg.xmlconfig.find("./system")
+        self.snmpconfig = junosdevcfg.xmlconfig.find("./snmp")
+
+    def has_snmpcfg(self):
+        if self.snmpconfig == None:
+            return False
+        else:
+            return True
+
+    def get_hostname(self):
+        if self.xmlconfig.find("./host-name") == None:
+            return ""
+        else:
+            return self.xmlconfig.find("./host-name").text
+
+    def get_domainname(self):
+        if self.xmlconfig.find("./domain-name") == None:
+            return ""
+        else:
+            return self.xmlconfig.find("./domain-name").text
+
+    def get_timezone(self):
+        if self.xmlconfig.find("./time-zone") == None:
+            return ""
+        else:
+            return self.xmlconfig.find("./time-zone").text
+
+    def get_authentication_order(self):
+        auth_order = []
+        if self.xmlconfig.find("./authentication-order") == None:
+            pass
+        else:
+            for auths in self.xmlconfig.findall("./authentication-order"):
+                auth_order.append(auths.text)
+        return auth_order
+
+    def get_nameservers(self):
+        nameservers = []
+        if self.xmlconfig.find("./name-server") == None:
+            pass
+        else:
+            for ns in self.xmlconfig.findall("./name-server"):
+                nameservers.append(ns.find("./name").text)
+        return nameservers
 
 
 class JunosDevCFG:
