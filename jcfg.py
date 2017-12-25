@@ -344,6 +344,23 @@ class VlanCFG:
         pass
 
 
+class SystemUserCFG:
+    """
+    A class providing a programatic interface to user's defined in a Juniper config XML file.
+
+    The class essentially wraps etree Elements of Juniper "system login user"s.
+
+    Methods are provided to inspect the configuration of current users and to modify them.
+    """
+    def __init__(self, junossystemcfg, username):
+        self.name = username
+        self.parent = junossystemcfg
+        for userentry in junossystemcfg.xmlconfig.findall("./login/user"):
+            if userentry.find("./name") == username:
+                self.xmlconfig = userentry
+
+
+
 class SystemCFG:
     """
     A class providing a programatic interface to common system parameters
