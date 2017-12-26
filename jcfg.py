@@ -356,9 +356,26 @@ class SystemUserCFG:
         self.name = username
         self.parent = junossystemcfg
         for userentry in junossystemcfg.xmlconfig.findall("./login/user"):
-            if userentry.find("./name") == username:
+            if userentry.find("./name").text == username:
                 self.xmlconfig = userentry
 
+    def get_uid(self):
+        if self.xmlconfig.find("./uid") == None:
+            return 0
+        else:
+            return self.xmlconfig.find("./uid").text
+
+    def get_full_name(self):
+        if self.xmlconfig.find("./full-name") == None:
+            return ""
+        else:
+            return self.xmlconfig.find("./full-name").text
+
+    def get_class(self):
+        if self.xmlconfig.find("./class") == None:
+            return ""
+        else:
+            return self.xmlconfig.find("./class").text
 
 
 class SystemCFG:
