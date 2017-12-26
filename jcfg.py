@@ -365,17 +365,58 @@ class SystemUserCFG:
         else:
             return self.xmlconfig.find("./uid").text
 
+    def set_uid(self, uidnum):
+        if uidnum == 0:
+            if self.xmlconfig.find("./uid") == None:
+                pass
+            else:
+                self.xmlconfig.remove(self.xmlconfig.find("./uid"))
+        else:
+            if self.xmlconfig.find("./uid") == None:
+                etree.SubElement(self.xmlconfig, "uid").text = str(uidnum)
+            else:
+                self.xmlconfig.find("./uid").text = str(uidnum)
+
     def get_full_name(self):
         if self.xmlconfig.find("./full-name") == None:
             return ""
         else:
             return self.xmlconfig.find("./full-name").text
 
+    def set_full_name(self, full_name):
+        if fullname == "":
+            if self.xmlconfig.find("./full-name") == None:
+                pass
+            else:
+                self.xmlconfig.remove(self.xmlconfig.find("./full-name"))
+        else:
+            if self.xmlconfig.find("./full-name") == None:
+                etree.SubElement(self.xmlconfig, "full-name").text = full_name
+            else:
+                self.xmlconfig.find("./full-name").text = full_name
+
     def get_class(self):
         if self.xmlconfig.find("./class") == None:
             return ""
         else:
             return self.xmlconfig.find("./class").text
+
+    def set_class(self, classname):
+        if classname == "":
+            if self.xmlconfig.find("./class") == None:
+                pass
+            else:
+                self.xmlconfig.remove(self.xmlconfig.find("./class"))
+        else:
+            if classname not in ["operator", "read-only", "super-user", "unauthorized"]:
+                """
+                This needs to be updated to allow non-built-in classes configured in JunOS config .
+                """
+                raise ValueError("class {} is not a valid class type in JunOS".format(classname))
+            if self.xmlconfig.find("./class") == None:
+                etree.SubElement(self.xmlconfig, "class").text = classname
+            else:
+                self.xmlconfig.find("./class").text = classname
 
 
 class SystemCFG:
