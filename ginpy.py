@@ -5,17 +5,18 @@ from jnpr.junos import Device
 import ipaddress
 
 
-class InterfaceUnitCFG:
+class JunosInterfaceUnit:
     """A class providing a programatic interface to individual units of network interfaces defined in a Juniper config XML file.
 
     The class essentially wraps an etree Element of a Juniper "interfaces { interface { <intname> { unit { <unitnum }}}}".  Methods are
     provided to inspect what the current configuration is, and to modify it.
     """
 
-    def __init__(self, intobj, unitnum):
+    def __init__(self, junosinterface, unitnum):
         self.unitnum = unitnum
-        self.parent = intobj
-        for unit in intobj.xmlconfig.findall("./unit"):
+        self.parent = junosinterface
+        self.handle = junosinterface.handle
+        for unit in junosinterface.xmlconfig.findall("./unit"):
             if unit.find("name").text == unitnum:
                     self.xmlconfig = unit
 
@@ -259,20 +260,21 @@ class InterfaceUnitCFG:
         """
         pass
 
-class InterfaceCFG:
+class JunosInterface:
     """A class providing a programatic interface to network interfaces defined in a Juniper config XML file.
 
     The class essentially wraps an etree Element of a Juniper "interfaces { interface { <intname> }}".  Methods are provided to inspect
     what the current configuration is, and to modify it.
     """
 
-    def __init__(self, junosdevcfg, intname):
+    def __init__(self, junosdev, intname):
         """Create an Interface Object.  Pass in a top-level JConfig Object, and a
         name of an interface.
         """
         self.name = intname
-        self.parent = junosdevcfg
-        for interface in junosdevcfg.xmlconfig.findall("./interfaces/interface"):
+        self.parent = junosdev
+        self.handle = junosdev.handle
+        for interface in junosdev.xmlconfig.findall("./interfaces/interface"):
             if interface.find("name").text == intname:
                 self.xmlconfig = interface
 
@@ -323,28 +325,29 @@ class InterfaceCFG:
         pass
 
 
-class VlanCFG:
+class JunosVlan:
     """A class providing a programatic interface to network interfaces defined in a Juniper config XML file.
 
     The class essentially wraps an etree Element of a Juniper "interfaces { interface { <intname> }}".  Methods are provided to inspect
     what the current configuration is, and to modify it.
     """
-    def __init__(self, junosdevcfg, vlan_name ):
+    def __init__(self, junosdev, vlan_name):
         """Create an VlanCFG Object.  Pass in a top-level JunosDevConfig Object, and a
         name of a vlan.
         """
         self.name = vlan_name
-        self.parent = junosdevcfg
-        for vlan in junosdevcfg.xmlconfig.findall("./vlans"):
+        self.parent = junosdev
+        self.handle = junosdev.handle
+        for vlan in junosdev.xmlconfig.findall("./vlans"):
             if vlan.find("name").text == vlan_name:
                 self.xmlconfig = vlan
 
     @classmethod
-    def get_vlan_by_id(cls, junosdevcfg, vlan_id):
+    def get_vlan_by_id(cls, junosdev, vlan_id):
         pass
 
 
-class SystemUserCFG:
+class JunosSystemUser:
     """
     A class providing a programatic interface to user's defined in a Juniper config XML file.
 
@@ -352,10 +355,11 @@ class SystemUserCFG:
 
     Methods are provided to inspect the configuration of current users and to modify them.
     """
-    def __init__(self, junossystemcfg, username):
+    def __init__(self, junossystem, username):
         self.name = username
-        self.parent = junossystemcfg
-        for userentry in junossystemcfg.xmlconfig.findall("./login/user"):
+        self.parent = junossystem
+        self.handle = junossystem.handle
+        for userentry in junossystem.xmlconfig.findall("./login/user"):
             if userentry.find("./name").text == username:
                 self.xmlconfig = userentry
 
@@ -419,7 +423,7 @@ class SystemUserCFG:
                 self.xmlconfig.find("./class").text = classname
 
 
-class SystemCFG:
+class JunosSystem:
     """
     A class providing a programatic interface to common system parameters
     defined in a Juniper config XML file.
@@ -428,14 +432,15 @@ class SystemCFG:
     hierarchy.  Methods are provided to inspect what the current configuration
     is, and to modify it.
     """
-    def __init__(self, junosdevcfg):
+    def __init__(self, junosdev):
         """Create an VlanCFG Object.  Pass in a top-level JunosDevConfig Object, and a
         name of a vlan.
         """
         self.name = "system"
-        self.parent = junosdevcfg
-        self.xmlconfig = junosdevcfg.xmlconfig.find("./system")
-        self.snmpconfig = junosdevcfg.xmlconfig.find("./snmp")
+        self.parent = junosdev
+        self.handle = junosdev.handle
+        self.xmlconfig = junosdev.xmlconfig.find("./system")
+        self.snmpconfig = junosdev.xmlconfig.find("./snmp")
 
     def has_snmpcfg(self):
         if self.snmpconfig == None:
@@ -480,18 +485,18 @@ class SystemCFG:
         return nameservers
 
 
-class JunosDevCFG:
-    """A class providing a programatic interface to a JunOS Device configuration.
-
-    The class essentially wraps an etree Element of a JunOS device configuration.  Methods are provided to inspect what the current
-    configuration is, and to modify it.
-
-    Pass a JunosDev object into the constructor.  The constructor will retrieve the configuration and store it as self.xmlconfig
-    """
-    def __init__(self, junosdev):
-        self.name = junosdev.name
-        with junosdev.handle as conn:
-            self.xmlconfig = conn.rpc.get_config()
+#class JunosDevCFG:
+#    """A class providing a programatic interface to a JunOS Device configuration.
+#
+#    The class essentially wraps an etree Element of a JunOS device configuration.  Methods are provided to inspect what the current
+#    configuration is, and to modify it.
+#
+#    Pass a JunosDev object into the constructor.  The constructor will retrieve the configuration and store it as self.xmlconfig
+#    """
+#    def __init__(self, junosdev):
+#        self.name = junosdev.name
+#        with junosdev.handle as conn:
+#            self.xmlconfig = conn.rpc.get_config()
 
 
 class JunosDev:
@@ -503,6 +508,8 @@ class JunosDev:
     def __init__(self, hostname, username):
         self.name = hostname
         self.handle = Device(host=hostname, user=username)
+        with self.handle as conn:
+            self.xmlconfig = conn.rpc.get_config()
 
 
 def main():
