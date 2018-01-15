@@ -1,10 +1,11 @@
 import os
 import sys
+import copy
+import time
 from lxml import etree
 from jnpr.junos import Device
 from jnpr.junos.utils.config import Config
 import ipaddress
-import copy
 
 
 class JunosInterfaceUnit:
@@ -525,8 +526,13 @@ class JunosDev:
                 conf.load(self.xmlconfig, overwrite=True)
                 conf.commit(comment = comment)
 
-    def commit_confirm(self, rollback=10, delay=2):
-        pass
+    def commit_confirm(self, comment="change by GinPy", rollback=10, delay=2):
+        with self.handle as conn:
+            with Config(conn) as conf:
+                conf.load(self.xmlconfig, overwrite=True)
+                conf.commit(comment = comment, confirm = rollback)
+                time.sleep(delay * 60)
+                conf.commit(comment = "confirming commit")
 
     def rollback(self):
         pass
