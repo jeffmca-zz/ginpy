@@ -2,7 +2,9 @@ import os
 import sys
 from lxml import etree
 from jnpr.junos import Device
+from jnpr.junos.utils.config import Config
 import ipaddress
+import copy
 
 
 class JunosInterfaceUnit:
@@ -504,13 +506,30 @@ class JunosDev:
 
     The class, on instantiation, creates and holds a pyez handle as self.handle to be used in interacting with the JunOS Device.
     """
-
+    
     def __init__(self, hostname, username):
         self.name = hostname
         self.handle = Device(host=hostname, user=username)
+
+    def retrieve_conf(self):
         with self.handle as conn:
             self.xmlconfig = conn.rpc.get_config()
+        self.xmlconfig_initial = copy.deepcopy(self.xmlconfig)
 
+    def commit_check(self):
+        pass
+
+    def commit(self, comment="change by GinPy"):
+        with self.handle as conn:
+            with Config(conn) as conf:
+                conf.load(self.xmlconfig, overwrite=True)
+                conf.commit(comment = comment)
+
+    def commit_confirm(self, rollback=10, delay=2):
+        pass
+
+    def rollback(self):
+        pass
 
 def main():
     print("Something should probably happen here in main().")
