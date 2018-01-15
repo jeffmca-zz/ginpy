@@ -518,7 +518,13 @@ class JunosDev:
         self.xmlconfig_initial = copy.deepcopy(self.xmlconfig)
 
     def commit_check(self):
-        pass
+        with self.handle as conn:
+            with Config(conn) as conf:
+                conf.load(self.xmlconfig, overwrite=True)
+                try:
+                    conf.commit_check()
+                finally:
+                    conf.rollback()
 
     def commit(self, comment="change by GinPy"):
         with self.handle as conn:
